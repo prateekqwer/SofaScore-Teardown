@@ -13,6 +13,22 @@
             --card-front: #ffffff;
             --text-color: #333333;
             --success-color: #4caf50;
+            --control-bg: #ffffff;
+            --modal-bg: #ffffff;
+            --card-shadow: rgba(0,0,0,0.1);
+        }
+
+        /* Dark mode theme */
+        body.dark-mode {
+            --primary-color: #64b5f6;
+            --background-color: #1a1a1a;
+            --card-back: #2c3e50;
+            --card-front: #2d2d2d;
+            --text-color: #e0e0e0;
+            --success-color: #66bb6a;
+            --control-bg: #2d2d2d;
+            --modal-bg: #2d2d2d;
+            --card-shadow: rgba(0,0,0,0.5);
         }
 
         * {
@@ -29,6 +45,7 @@
             line-height: 1.6;
             padding: 20px;
             min-height: 100vh;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* Main container with max-width for larger screens */
@@ -41,11 +58,55 @@
         .header {
             text-align: center;
             margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
         }
 
         .header h1 {
             font-size: 2.5rem;
             margin-bottom: 0.5rem;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        /* Dark mode toggle button */
+        .dark-mode-toggle {
+            width: 60px;
+            height: 30px;
+            border-radius: 15px;
+            border: none;
+            background-color: #ccc;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+        }
+
+        .dark-mode-toggle.active {
+            background-color: #1976d2;
+        }
+
+        .dark-mode-toggle::after {
+            content: '';
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background-color: white;
+            position: absolute;
+            left: 2px;
+            transition: left 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dark-mode-toggle.active::after {
+            left: 32px;
         }
 
         /* Game controls and statistics panel */
@@ -54,11 +115,12 @@
             justify-content: space-around;
             flex-wrap: wrap;
             gap: 1rem;
-            background: white;
+            background: var(--control-bg);
             padding: 1rem;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px var(--card-shadow);
             margin-bottom: 2rem;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .stat {
@@ -146,7 +208,8 @@
             align-items: center;
             justify-content: center;
             font-size: 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px var(--card-shadow);
+            transition: box-shadow 0.3s ease;
         }
 
         .card-front {
@@ -167,18 +230,20 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.7);
             justify-content: center;
             align-items: center;
+            z-index: 1000;
         }
 
         .modal-content {
-            background: white;
+            background: var(--modal-bg);
             padding: 2rem;
             border-radius: 8px;
             text-align: center;
             max-width: 400px;
             width: 90%;
+            transition: background-color 0.3s ease;
         }
 
         /* Best scores section */
@@ -190,9 +255,10 @@
         .scores-list {
             max-width: 600px;
             margin: 1rem auto;
-            background: white;
+            background: var(--control-bg);
             padding: 1rem;
             border-radius: 8px;
+            transition: background-color 0.3s ease;
         }
 
         /* Responsive design adjustments */
@@ -216,8 +282,11 @@
     <div class="container">
         <!-- Game header with title and instructions -->
         <header class="header">
-            <h1>Memory Game</h1>
-            <p>Match all the pairs to win! Use keyboard or mouse to play.</p>
+            <div>
+                <h1>Memory Game</h1>
+                <p>Match all the pairs to win! Use keyboard or mouse to play.</p>
+            </div>
+            <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle dark mode" title="Toggle dark mode"></button>
         </header>
 
         <!-- Game statistics panel -->
@@ -286,7 +355,8 @@
             modal: document.querySelector('.modal'),
             finalStats: document.querySelector('.final-stats'),
             gridButtons: document.querySelectorAll('.grid-btn'),
-            scoresList: document.querySelector('.scores-list')
+            scoresList: document.querySelector('.scores-list'),
+            darkModeToggle: document.getElementById('darkModeToggle')
         };
 
         // Card symbols (emojis) for both grid sizes
@@ -427,6 +497,22 @@
                 '<p>No scores yet. Start playing to set some records!</p>';
         }
 
+        // Initialize dark mode from localStorage
+        function initializeDarkMode() {
+            const isDarkMode = localStorage.getItem('memoryGameDarkMode') === 'true';
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                elements.darkModeToggle.classList.add('active');
+            }
+        }
+
+        // Toggle dark mode
+        function toggleDarkMode() {
+            const isDarkMode = document.body.classList.toggle('dark-mode');
+            elements.darkModeToggle.classList.toggle('active');
+            localStorage.setItem('memoryGameDarkMode', isDarkMode);
+        }
+
         // Handle card flip logic
         function flipCard(card) {
             if (!gameState.canFlip || card.classList.contains('matched') || 
@@ -469,6 +555,8 @@
         }
 
         // Event Listeners
+        elements.darkModeToggle.addEventListener('click', toggleDarkMode);
+
         elements.grid.addEventListener('click', (e) => {
             const card = e.target.closest('.card');
             if (card) flipCard(card);
@@ -498,9 +586,10 @@
             });
         });
 
-        // Initialize game
-        updateScoresList();
+        // Initialize the game on page load
+        initializeDarkMode();
         initializeGrid();
+        updateScoresList();
     </script>
 </body>
 </html>
